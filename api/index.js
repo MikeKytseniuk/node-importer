@@ -1,26 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const amqp = require('amqplib/callback_api');
 const app = express();
+const indexRouter = require('./routes/index');
+const contactsRouter = require('./routes/contacts');
+
+//body parser 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+//setup view engine
+app.set('views', path.join(__dirname, '../views'));
+app.set('view engine', 'jade');
 
 
-
-app.use('/', (req, res) => {
-
-    amqp.connect('amqp://localhost', (err, conn) => {
-        conn.createChannel((err, ch) => {
-            let q = 'contact';
-
-            ch.assertQueue(q, { durable: false });
-            ch.consume(q, msg => {
-                let contact = msg.content.toString();
-                res.send(JSON.parse(contact));
-            }, { noAck: true });
-        });
-    });
-
-  
-});
+//Routes
+app.use('/', indexRouter);
+app.use('/', contactsRouter);
 
 app.listen(5000);
