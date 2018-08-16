@@ -4,6 +4,7 @@ const path = require('path');
 const app = express();
 const indexRouter = require('./routes/index');
 const contactsRouter = require('./routes/contacts');
+const getMessage = require('../rabbit/rabbitClient');
 
 //body parser 
 app.use(bodyParser.json());
@@ -14,8 +15,12 @@ app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'jade');
 
 
+
 //Routes
 app.use('/', indexRouter);
 app.use('/', contactsRouter);
 
-app.listen(5000);
+
+app.listen(5000, getMessage);
+
+

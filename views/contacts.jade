@@ -1,43 +1,24 @@
 extends importer
 
 block contact
-    if contacts
-        form.col-6.contact-form(method='post', action='/addContactToDatabase')
-            .form-group
-                label First name
-                input.form-control(type='text', name='firstName' , value=message.firstName, readonly='true')
-            .form-group
-                label Last name
-                input.form-control(type='text', name='lastName', value=message.lastName, readonly='true') 
-            .form-group
-                label Email
-                input.form-control(type='text', name='email', value=message.email, readonly='true')
-            .form-group
-                label Phone Number
-                input.form-control(type='text', name='phoneNumber', value=message.phoneNumber, readonly='true')
-                br
-                input.btn(type='submit', value='Add contact to database')  
-        //- table.table.table-dark
-        //-     thead
-        //-         tr
-        //-             th(scope="col") First Name
-        //-             |       
-        //-             th(scope="col") Last Name
-        //-             |       
-        //-             th(scope="col") Email
-        //-             |       
-        //-             th(scope="col") Phone number
-        //-             |   
-        //-     tbody
-        //-         tr
-        //-             th(scope="row") #{message.firstName}
-        //-             td #{message.lastName}
-        //-             |       
-        //-             td #{message.email}
-        //-             |       
-        //-             td #{message.phoneNumber}
-        //- button.btn.btn-primary Add Contact To database
+    if contacts 
+    h1 Contacts    
+    table.table.table-dark
+        thead
+            tr
+                th(scope="col") ID
+                th(scope="col") First Name
+                th(scope="col") Last Name
+                th(scope="col") Email
+                th(scope="col") Phone Number
+        tbody
+            each contact in contacts
+                tr
+                    td #{contact.id}
+                    td #{contact.firstName}
+                    td #{contact.lastName}
+                    td #{contact.email}
+                    td #{contact.phoneNumber}
 
-    else     
-        h1 #{message}
+
 

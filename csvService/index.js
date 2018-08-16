@@ -5,7 +5,7 @@ const expressValidator = require('express-validator');
 
 //Routes
 const indexRouter = require('./routes/index');
-const contactsRouter = require('./routes/contact');
+const contactsRouter = require('./routes/contacts');
 
 const app = express();
 
@@ -39,6 +39,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use('/', indexRouter);
-app.use('/contacts', contactsRouter);
+app.use('/contacts', contactsRouter); 
 
-app.listen(3000);
+
+app.listen(8000);

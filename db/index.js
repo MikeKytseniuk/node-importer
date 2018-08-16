@@ -8,3 +8,5 @@ const sequelize = new Sequelize('nodeImporter', 'postgres', '040527', {
 module.exports = {
     Contact: require('./contact')(sequelize, Sequelize)
   };
+
+//module.exports = sequelize;

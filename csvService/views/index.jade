@@ -1,0 +1,15 @@
+extends layout
+
+block content             
+        .row
+            form.col-6.contact-form(method='post', action='/contacts/addCSV' enctype='multipart/form-data')
+                .form-group
+                    label Upload CSV
+                    input.form-control(type='file', name='csv')
+                    br
+                    if error    
+                        .alert.alert-danger #{error}
+                    if message        
+                        .alert.alert-success #{message}        
+                    input.btn(type='submit', value='Add contact') 
+

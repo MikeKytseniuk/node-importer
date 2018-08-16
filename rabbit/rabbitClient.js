@@ -1,23 +1,32 @@
 const amqp = require('amqplib/callback_api');
+const db = require('../db/index');
 
-module.exports = function getMessageFromQueue() {
-    return new Promise((resolve, reject) => {
-        amqp.connect('amqp://localhost', (err, conn) => {
-            if (err) reject(err);
-            conn.createChannel((err, ch) => {
-                let q = 'contact';
+function addContactToDatabase(contact) {
 
-                ch.assertQueue(q, { durable: false });
-                ch.get(q, { noAck: true}, (err, msg) => {
-                    if(!msg) {
-                        return resolve('There are no contacts sent');
-                    }
-                    
-                    let contact = msg.content.toString();
-                    resolve(JSON.parse(contact));
-                });
+    try {
+        db.Contact.findOrCreate({ where: contact })
+            .spread((user, created) => {
+                console.log(created);
             });
-        });
-    });
+    } catch (e) {
+        console.log(e);
+    }
 
 }
+
+module.exports = function getMessageFromQueue() {
+    amqp.connect('amqp://localhost', (err, conn) => {
+        if (err) reject(err);
+        conn.createChannel((err, ch) => {
+            let q = 'contact';
+
+            ch.assertQueue(q, { durable: false });
+            ch.consume(q, msg => {
+                let contact = msg.content.toString();
+
+                addContactToDatabase(JSON.parse(contact));
+
+            }, { noAck: true });
+        });
+    });
+};
