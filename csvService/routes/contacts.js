@@ -20,19 +20,8 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
     }
 
     const convertedCSV = await csv().fromFile(req.file.path);
-    convertedCSV.forEach( contact => {
-        request.post({
-            method: 'POST',
-            uri: 'http://localhost:5000/addCSVContacts',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(convertedCSV)
-        }, (err, response, body) => {
-            console.log(body);
-        });
-    });
-    /* request.post({
+
+    request.post({
         method: 'POST',
         uri: 'http://localhost:5000/addCSVContacts',
         headers: {
@@ -40,9 +29,12 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
         },
         body: JSON.stringify(convertedCSV)
     }, (err, response, body) => {
-        console.log(body);
-    }); */
-    res.render('index', { message: 'File successfully loaded' }); 
+        
+        let contacts = JSON.parse(body);
+
+        res.render('index', { contacts: contacts, message: 'File successfully loaded' }); 
+    });
+
     //readStream.pipe(csv()).pipe(res);
     //readStream.pipe(csv()).pipe(writeStream);
 

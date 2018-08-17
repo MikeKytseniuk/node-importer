@@ -10,48 +10,40 @@ router.get('/getContacts', async (req, res) => {
 });
 
 router.post('/addCSVContacts', async (req, res) => {
-    let userNotCreated = [];
     let csvContacts = req.body;
-    /* csvContacts.forEach( (contact, index) => {
-        try {
-            db.Contact.findOrCreate({ where: contact })
-                .spread((user, created) => {
-                    console.log(created);
-                    if(!created) {
-                        csvContacts.splice(index, 1);
-                        console.log('--------------------------------------------', csvContacts);
-                        userNotCreated.push(user.get({plain: true}));
-                       // return res.send('Contacts already exists');
-                    }
 
-                    console.log(csvContacts.length);
-                    //res.status(200).send('Contacts sucessfully added');
-                });
-              
-        } catch (e) {
-           res.status(500);
-        }
-    }); */
-    try {
-        db.Contact.findOrCreate({ where: csvContacts })
-            .spread((user, created) => {
-                console.log(created);
-                let contact = user.get({plain: true});
-                if(!created) {
-                  
-                   return res.send(`${contact.firstName} already exists`);
-                }
-
-                console.log(csvContacts.length);
-                res.status(200).send(`${contact.firstName} successfully added`);
-                //res.status(200).send('Contacts sucessfully added');
-            });
-          
-    } catch (e) {
-       res.status(500);
-    }
-   // res.send(userNotCreated);
+    res.send(await addCSVContacts(csvContacts));
 });
 
+async function addCSVContacts(contacts) {
+
+        let newContacts = contacts.map( async contact => {
+            let result = await db.Contact.findOrCreate({ where: contact });
+            let created = result[1];
+            let newContact = {
+                contact: contact,
+                added: created
+            };
+
+            return newContact;
+        });
+
+        
+        return Promise.all(newContacts);
+}
+
+
+
+
+/* const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+let arr = [1,2,3];
+let result = arr.map(async (num) => {
+
+  await waitFor(50)
+ return num + 1;
+})
+
+console.log(Promise.all(result).then(res => console.log(res)));
+console.log('Done') */
 
 module.exports = router;
