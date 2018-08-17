@@ -30,11 +30,15 @@ block content
                                 td #{contact.contact.lastName}
                                 td #{contact.contact.email}
                                 td #{contact.contact.phoneNumber}
-                                if contact.added
-                                    td 
-                                        .alert.alert-success Successfully added
-                                else
-                                    td 
-                                        .alert.alert-danger Already exists
+                                td
+                                    if contact.valid 
+                                        .alert.alert-success Valid
+                                        if contact.added
+                                            .alert.alert-success Successfully added
+                                        else 
+                                            .alert.alert-danger Contact already exists
+                                    else
+                                        .alert.alert-danger Not valid 
+
      
 

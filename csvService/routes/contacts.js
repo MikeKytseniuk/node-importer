@@ -3,10 +3,10 @@ const router = express.Router();
 const db = require('../../db/index');
 const fs = require('fs');
 const multer = require('multer');
-const upload = multer({ 
+const upload = multer({
     dest: 'uploads/',
     fileFilter: fileFilter
-    });
+});
 const request = require('request');
 const csv = require('csvtojson');
 
@@ -16,7 +16,7 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
     //const readStream = fs.createReadStream(req.file.path);
 
     if (!req.file) {
-        return res.render('index', { error: 'Invalid CSV file extenstion'});
+        return res.render('index', { error: 'Invalid CSV file extenstion' });
     }
 
     const convertedCSV = await csv().fromFile(req.file.path);
@@ -29,10 +29,9 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
         },
         body: JSON.stringify(convertedCSV)
     }, (err, response, body) => {
-        
         let contacts = JSON.parse(body);
 
-        res.render('index', { contacts: contacts, message: 'File successfully loaded' }); 
+        res.render('index', { contacts: contacts, message: 'File successfully loaded' });
     });
 
     //readStream.pipe(csv()).pipe(res);
