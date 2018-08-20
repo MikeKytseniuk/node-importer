@@ -8,17 +8,14 @@ module.exports = (sequelize, Sequelize) =>
         lastName: {
             type: Sequelize.STRING,
             allowNull: false,
-            unique:true
         },
         email: {
             type: Sequelize.STRING,
-            allowNull: false,
-            unique:true
+            allowNull: false
         },
         phoneNumber: {
             type: Sequelize.STRING,
-            allowNull: false,
-            unique:true
+            allowNull: false
         }
     });
 /* const Sequelize = require('sequelize')

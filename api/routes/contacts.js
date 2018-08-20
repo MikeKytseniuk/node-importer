@@ -7,13 +7,17 @@ const validate = require('../../validation/index');
 
 
 router.get('/getContacts', async (req, res) => {
-    let contacts = await db.Contact.findAll();
-    res.render('contacts', { contacts: contacts })
+    try {
+        let contacts = await db.Contact.findAll();
+        res.render('contacts', { contacts: contacts })
+    } catch (e) {
+        console.log(e);
+    }
+
 });
 
 router.post('/addCSVContacts', async (req, res) => {
     let csvContacts = req.body;
-
     res.send(await addCSVContacts(csvContacts));
 });
 
@@ -30,11 +34,16 @@ async function addCSVContacts(contacts) {
             return newContact;
         }
 
-        let result = await db.Contact.findOrCreate({ where: contact }),
-            isAddedToDB = result[1];
+        try {
+            let result = await db.Contact.findOrCreate({ where: contact }),
+                isAddedToDB = result[1];
 
-        newContact.added = isAddedToDB;
-        return newContact;
+            newContact.added = isAddedToDB;
+            return newContact;
+        } catch (e) {
+            console.log(e);
+        }
+
     });
 
 

@@ -5,6 +5,7 @@ const sequelize = new Sequelize('nodeImporter', 'postgres', '040527', {
     dialect: 'postgres'
 });
 
+sequelize.sync();
 module.exports = {
     Contact: require('./contact')(sequelize, Sequelize)
   };

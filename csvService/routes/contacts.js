@@ -12,15 +12,14 @@ const csv = require('csvtojson');
 
 
 router.post('/addCSV', upload.single('csv'), async (req, res) => {
-
+    
     //const readStream = fs.createReadStream(req.file.path);
 
     if (!req.file) {
         return res.render('index', { error: 'Invalid CSV file extenstion' });
     }
-
+    
     const convertedCSV = await csv().fromFile(req.file.path);
-
     request.post({
         method: 'POST',
         uri: 'http://localhost:5000/addCSVContacts',
