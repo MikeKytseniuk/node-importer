@@ -1,0 +1,24 @@
+extends layout
+
+block content
+        h1 LOLO
+        .row       
+            if contacts 
+                h2 HEllo
+                h2 Contacts    
+                //- table.table
+                //-     thead
+                //-         tr
+                //-             th(scope="col") ID
+                //-             th(scope="col") First Name
+                //-             th(scope="col") Last Name
+                //-             th(scope="col") Email
+                //-             th(scope="col") Phone Number
+                //-     tbody
+                //-         each contact in contacts
+                //-             tr
+                //-                 td #{contact.id}
+                //-                 td #{contact.firstName}
+                //-                 td #{contact.lastName}
+                //-                 td #{contact.email}
+                //-                 td #{contact.phoneNumber}

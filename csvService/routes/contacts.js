@@ -17,9 +17,16 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
     }
 
     const convertedCSV = await csv().fromFile(req.file.path);
-    let response = await rabbitMQ.sendToQueue(JSON.stringify(convertedCSV));
+    let newContacts = convertedCSV.map( async elem => {
+        let result = await rabbitMQ.sendToQueue(JSON.stringify(elem));
+        return result;
+    });
 
+    let response = await Promise.all(newContacts);
     res.render('index', { contacts: response, message: 'File successfully loaded' });
+/*    let response = await rabbitMQ.sendToQueue(JSON.stringify(convertedCSV));
+    console.log(response);
+    res.render('index', { contacts: response, message: 'File successfully loaded' }); */
 
 });
 
