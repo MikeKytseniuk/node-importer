@@ -13,7 +13,7 @@ function validateContact(req, contact) {
     }
 }
 
-router.post('/addContact', (req, res) => {
+router.post('/addContact', async (req, res) => {
     let contact = req.body;
 
     validateContact(req, contact);
@@ -23,8 +23,8 @@ router.post('/addContact', (req, res) => {
     if (errors) {
         res.render('index', { errors: errors });
     } else {
-        rabbitMQ.sendToQueue(JSON.stringify(contact));
-        res.render('index', { message: 'Contact successfully added' });
+        let response = await rabbitMQ.sendToQueue(JSON.stringify(contact));
+        res.render('index', { contact: response });
     }
 
 });

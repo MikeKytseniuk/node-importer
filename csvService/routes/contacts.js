@@ -1,40 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../db/index');
-const fs = require('fs');
 const multer = require('multer');
 const upload = multer({
     dest: 'uploads/',
     fileFilter: fileFilter
 });
-const request = require('request');
 const csv = require('csvtojson');
+const rabbitMQ = require('../../rabbit/rabbitPublisher');
 
 
 router.post('/addCSV', upload.single('csv'), async (req, res) => {
     
-    //const readStream = fs.createReadStream(req.file.path);
-
     if (!req.file) {
         return res.render('index', { error: 'Invalid CSV file extenstion' });
     }
-    
+
     const convertedCSV = await csv().fromFile(req.file.path);
-    request.post({
-        method: 'POST',
-        uri: 'http://localhost:5000/addCSVContacts',
-        headers: {
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify(convertedCSV)
-    }, (err, response, body) => {
-        let contacts = JSON.parse(body);
+    let response = await rabbitMQ.sendToQueue(JSON.stringify(convertedCSV));
 
-        res.render('index', { contacts: contacts, message: 'File successfully loaded' });
-    });
-
-    //readStream.pipe(csv()).pipe(res);
-    //readStream.pipe(csv()).pipe(writeStream);
+    res.render('index', { contacts: response, message: 'File successfully loaded' });
 
 });
 

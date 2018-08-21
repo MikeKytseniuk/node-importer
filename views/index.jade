@@ -20,7 +20,28 @@ block content
             .col-6.errors
                 if errors        
                     each error in errors
-                        div.alert.alert-danger #{error.msg}
-            .col-6.success
-                if message        
-                    div.alert.alert-success #{message}
+                        .alert.alert-danger #{error.msg}
+        .log
+            if contact
+                h3 Response Log
+                table.table
+                    thead
+                        tr
+                            th(scope="col") First Name
+                            th(scope="col") Last Name
+                            th(scope="col") Email
+                            th(scope="col") Phone Number
+                            th(scope="col") Status
+                    tbody
+                        tr
+                            each prop in contact.contact
+                                td #{prop}
+                            td
+                                if contact.valid 
+                                    .alert.alert-success Valid
+                                    if contact.added
+                                        .alert.alert-success Successfully added
+                                    else 
+                                        .alert.alert-danger Contact already exists
+                                else
+                                    .alert.alert-danger Not valid
