@@ -8,7 +8,6 @@ const contactsRouter = require('./routes/contacts'); */
 const mongo = require('mongodb');
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/feeder');
-//const db = mongoose.connection;
 const MongoDBContact = require('./models/contact');
 
 
@@ -21,12 +20,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 
-/* function resolveArray(arr, limit) {
+function resolveArray(arr, limit) {
     return function lol() {
         let chunk = arr.splice(0, limit);
         return chunk;
     }
-} */
+}
+
 
 app.post('/notification', async (req, res) => {
     let addedContacts = req.body;
@@ -35,7 +35,21 @@ app.post('/notification', async (req, res) => {
         return res.status(404).send('Bad request');
     }
 
-    addedContacts.map(async elem => {
+    let resolve = resolveArray(addedContacts, 2);
+
+    while(addedContacts.length) {
+        compareDatabases(resolve());
+    }
+    
+    
+    
+
+    res.redirect('/');
+    //res.render('index', { contacts: req.body });
+})
+
+async function compareDatabases(contacts) {
+    contacts.map(async elem => {
         let result = await db.Contact.find({ where: { email: elem } });
         let contact = result.get({ plain: true });
 
@@ -49,15 +63,13 @@ app.post('/notification', async (req, res) => {
 
             if (!result) {
                 MongoDBContact.create(newContact, (err, result) => {
-                  console.log('-----------------', result);
+                    console.log('---------------------------', 'Added')
                 })
             }
         });
     });
+}
 
-    res.redirect('/');
-    //res.render('index', { contacts: req.body });
-})
 
 app.use('/', (req, res) => {
 

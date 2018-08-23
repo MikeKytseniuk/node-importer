@@ -6,9 +6,9 @@ router.get('/getContacts', async (req, res) => {
 
     try {
         let contacts = await db.Contact.findAll();
-        res.render('contacts', { contacts: contacts })
+        res.render('contacts', { contacts: contacts });
     } catch (e) {
-        console.log(e);
+        res.render('contacts', { error: 'Database connection lost' });
     }
 
 });

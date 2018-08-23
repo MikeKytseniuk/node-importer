@@ -1,45 +1,12 @@
 const amqp = require('amqplib/callback_api');
-const db = require('../db/index');
-const validate = require('../validation/index');
-const request = require('request');
-
-async function addContactToDatabase(contact) {
-    let newContact = {
-        contact: contact,
-        valid: validate(contact)
-    };
-
-    if (!newContact.valid) {
-        newContact.added = false;
-        return newContact;
-    }
-
-    try {
-        let result = await db.Contact.findOrCreate({ where: contact }),
-            isAddedToDB = result[1];
-
-        newContact.added = isAddedToDB;
-        return newContact;
-    } catch (e) {
-        newContact.added = false;
-        return newContact;
-    }
-}
-
-function sendContactsToFeeder(contacts) {
-    request.post({
-        method: 'POST',
-        uri: 'http://localhost:8080/notification',
-        headers: {
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify(contacts)
-    });
-}
+const handlers = require('./handlers');
 
 module.exports = function getMessageFromQueue() {
-    let counter = 0,
-        addedContacts = [];
+    let addedContacts = {
+        count: 0,
+        contacts: []
+    }
+
     amqp.connect('amqp://localhost', (err, conn) => {
         conn.createChannel((err, ch) => {
             let q = 'contact';
@@ -48,21 +15,9 @@ module.exports = function getMessageFromQueue() {
             ch.consume(q, async msg => {
 
                 let contact = msg.content.toString(),
-                    result = await addContactToDatabase(JSON.parse(contact));
+                    result = await handlers.addContactToDatabase(JSON.parse(contact));
 
-                counter++;
-
-                if (result.added) {
-                    addedContacts.push(result.contact.email)
-                }
-
-                if (counter === 5) {
-                    counter = 0;
-                    if (addedContacts.length) {
-                        sendContactsToFeeder(addedContacts);
-                    }
-                    addedContacts = [];
-                }
+                addedContacts = handlers.sendId(result.contact.email, result.added, addedContacts)
 
                 ch.sendToQueue(msg.properties.replyTo, new Buffer(JSON.stringify(result)), { correlationId: msg.properties.correlationId });
                 ch.ack(msg);
