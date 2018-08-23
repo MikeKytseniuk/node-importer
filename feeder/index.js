@@ -9,25 +9,8 @@ const mongo = require('mongodb');
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/feeder');
 //const db = mongoose.connection;
+const MongoDBContact = require('./models/contact');
 
-
-
-let ContactSchema = mongoose.Schema({
-    firstName: {
-        type: String
-    },
-    lastName: {
-        type: String
-    },
-    email: {
-        type: String
-    },
-    phoneNumber: {
-        type: String
-    }
-});
-
-let Contact = mongoose.model('Contact', ContactSchema);
 
 //body parser 
 app.use(bodyParser.json());
@@ -38,27 +21,48 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 
+/* function resolveArray(arr, limit) {
+    return function lol() {
+        let chunk = arr.splice(0, limit);
+        return chunk;
+    }
+} */
+
 app.post('/notification', async (req, res) => {
-    //let contacts = await db.Contact.findAll();
-    console.log(req.body);
-    req.body.map( async elem => {
-        console.log(await db.Contact.findOne({where: {email : elem}}))
+    let addedContacts = req.body;
+
+    if (!Array.isArray(addedContacts)) {
+        return res.status(404).send('Bad request');
+    }
+
+    addedContacts.map(async elem => {
+        let result = await db.Contact.find({ where: { email: elem } });
+        let contact = result.get({ plain: true });
+
+        MongoDBContact.findOne({ email: result.email }, (err, result) => {
+            let newContact = {
+                firstName: contact.firstName,
+                lastName: contact.lastName,
+                email: contact.email,
+                phoneNumber: contact.phoneNumber
+            }
+
+            if (!result) {
+                MongoDBContact.create(newContact, (err, result) => {
+                  console.log('-----------------', result);
+                })
+            }
+        });
     });
-    //console.log(contacts);
-   res.render('index', { contacts: req.body });
+
+    res.redirect('/');
+    //res.render('index', { contacts: req.body });
 })
 
 app.use('/', (req, res) => {
-    Contact.find({}, (err,result) => {
-        console.log(result);
-    });
-    res.render('index');
+
+    res.render('index', { contacts: 'huy' });
 });
-//Routes
-/* app.use('/', indexRouter);
-app.use('/', contactsRouter); */
 
 
 app.listen(8080);
-
-
