@@ -42,8 +42,6 @@ app.post('/notification', async (req, res) => {
     }
     
     
-    
-
     res.redirect('/');
     //res.render('index', { contacts: req.body });
 })

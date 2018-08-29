@@ -13,6 +13,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+//setup view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -34,9 +37,7 @@ app.use(expressValidator({
     }
 }));
 
-//setup view engine
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+
 
 app.use('/', indexRouter);
 app.use('/contacts', contactsRouter);

@@ -14,10 +14,13 @@ module.exports = function getMessageFromQueue() {
             ch.assertQueue(q, { durable: false });
             ch.consume(q, async msg => {
 
-                let contact = msg.content.toString(),
-                    result = await handlers.addContactToDatabase(JSON.parse(contact));
+                let contact = msg.content.toString();
 
-                addedContacts = handlers.sendId(result.contact.email, result.added, addedContacts)
+               /*  if(!contact.updated || !contact.deleted) {
+               
+                } */
+                let result = await handlers.addContactToDatabase(JSON.parse(contact));
+                addedContacts = handlers.sendId(result.contact.email, result.added, addedContacts);
 
                 ch.sendToQueue(msg.properties.replyTo, new Buffer(JSON.stringify(result)), { correlationId: msg.properties.correlationId });
                 ch.ack(msg);

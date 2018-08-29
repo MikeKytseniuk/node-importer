@@ -13,14 +13,21 @@ block contact
                     th(scope="col") Last Name
                     th(scope="col") Email
                     th(scope="col") Phone Number
-            tbody
-                each contact in contacts
-                    tr
-                        td #{contact.id}
+                    th(scope="col" colspan="2") Actions
+            tbody#contacts
+                each contact, i in contacts
+                    tr.contact-row
+                        td #{contact.id} 
                         td #{contact.firstName}
                         td #{contact.lastName}
                         td #{contact.email}
                         td #{contact.phoneNumber}
+                        td
+                            input.btn.btn-outline-dark.edit(type="submit" value="edit" data-id= contact.email data-index=i)
+                        td
+                            input.btn.btn-outline-dark.delete(type="button" value="delete" data-id= contact.email)
+
+                    
 
 
 

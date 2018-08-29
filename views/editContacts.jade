@@ -1,0 +1,44 @@
+extends importer
+
+block contact
+    if message
+        h3 #{message}
+    if response
+        table.table
+            thead
+                tr
+                    th(scope="col") Id
+                    th(scope="col") firstName
+                    th(scope="col") lastName
+                    th(scope="col") email
+                    th(scope="col") phoneNumber
+            tbody
+                tr
+                    td #{response.id}
+                    td #{response.firstName}
+                    td #{response.lastName}
+                    td #{response.email}
+                    td #{response.phoneNumber}
+    if successMsg 
+        .alert.alert-success #{successMsg}
+    if contact
+        form.col-6.contact-form(method="post" action='/editContact')
+            .form-group
+                label First name
+                input.form-control(type='text', name='firstName')
+            .form-group
+                label Last name
+                input.form-control(type='text', name='lastName')  
+            .form-group
+                label Email
+                input.form-control(type='text', name='email' disabled value=contact.email)
+                input.form-control(type='text', name='email' hidden value=contact.email)
+            .form-group
+                label Phone Number
+                input.form-control(type='text', name='phoneNumber')
+                br
+                input.btn(type='submit', value='Add contact')
+    .col-6.errors
+        if errors        
+            each error in errors
+                .alert.alert-danger #{error.msg}
