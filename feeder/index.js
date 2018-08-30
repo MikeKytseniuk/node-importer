@@ -41,10 +41,14 @@ app.post('/notification', async (req, res) => {
     res.redirect('/');
 });
 
-app.get('/getContacts', (req, res) => {
-    MongoDBContact.find({}, (err, result) => {
+app.get('/getContacts', async (req, res) => {
+    let referenceContacts = await db.Contact.findAll();
+    let result = await MongoDBContact.find({});
+    res.render('index', { mongoContacts: result, postgreContacts: referenceContacts});
+    /* MongoDBContact.find({}, (err, result) => {
         console.log(result);
-    });
+        res.render('index', { mongoContacts: result, postgreContacts: referenceContacts});
+    }); */
 });
 
 
@@ -62,6 +66,7 @@ async function compareDatabases(contacts) {
         
         if (!referenceContact) {
             MongoDBHandlers.delete(elem.id);
+            return;
         }
 
         MongoDBContact.findOne({ email: referenceContact.email }, (err, result) => {
