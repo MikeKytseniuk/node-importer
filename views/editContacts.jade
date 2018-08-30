@@ -7,18 +7,16 @@ block contact
         table.table
             thead
                 tr
-                    th(scope="col") Id
                     th(scope="col") firstName
                     th(scope="col") lastName
                     th(scope="col") email
                     th(scope="col") phoneNumber
             tbody
                 tr
-                    td #{response.id}
-                    td #{response.firstName}
-                    td #{response.lastName}
-                    td #{response.email}
-                    td #{response.phoneNumber}
+                    td #{response.body.firstName}
+                    td #{response.body.lastName}
+                    td #{response.body.email}
+                    td #{response.body.phoneNumber}
     if successMsg 
         .alert.alert-success #{successMsg}
     if contact

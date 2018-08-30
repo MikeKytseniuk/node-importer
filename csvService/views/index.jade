@@ -26,14 +26,14 @@ block content
                     tbody
                         each contact in contacts
                             tr
-                                td #{contact.contact.firstName}
-                                td #{contact.contact.lastName}
-                                td #{contact.contact.email}
-                                td #{contact.contact.phoneNumber}
+                                td #{contact.body.firstName}
+                                td #{contact.body.lastName}
+                                td #{contact.body.email}
+                                td #{contact.body.phoneNumber}
                                 td
                                     if contact.valid 
                                         .alert.alert-success Valid
-                                        if contact.added
+                                        if contact.success
                                             .alert.alert-success Successfully added
                                         else 
                                             .alert.alert-danger Contact already exists

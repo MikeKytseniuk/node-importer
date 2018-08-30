@@ -4,7 +4,7 @@ const handlers = require('./handlers');
 module.exports = function getMessageFromQueue() {
     let addedContacts = {
         count: 0,
-        contacts: []
+        body: []
     }
 
     amqp.connect('amqp://localhost', (err, conn) => {
@@ -15,12 +15,10 @@ module.exports = function getMessageFromQueue() {
             ch.consume(q, async msg => {
 
                 let contact = msg.content.toString();
-
-               /*  if(!contact.updated || !contact.deleted) {
-               
-                } */
-                let result = await handlers.addContactToDatabase(JSON.parse(contact));
-                addedContacts = handlers.sendId(result.contact.email, result.added, addedContacts);
+                contact = JSON.parse(contact);
+                
+                let result = await handlers[contact.action](contact);
+                addedContacts = await handlers.sendIdToFeeder(result.body.email, result.action, result.success, addedContacts);
 
                 ch.sendToQueue(msg.properties.replyTo, new Buffer(JSON.stringify(result)), { correlationId: msg.properties.correlationId });
                 ch.ack(msg);

@@ -19,7 +19,12 @@ router.post('/addCSV', upload.single('csv'), async (req, res) => {
     const convertedCSV = await csv().fromFile(req.file.path);
 
     let newContacts = convertedCSV.map( async elem => {
-        let result = await rabbitMQ.sendToQueue(JSON.stringify(elem));
+        let contact = {
+            body: elem,
+            action:'create'
+        };
+
+        let result = await rabbitMQ.sendToQueue(JSON.stringify(contact));
         return result;
     });
 

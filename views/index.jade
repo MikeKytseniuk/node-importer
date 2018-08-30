@@ -2,7 +2,7 @@ extends layout
 
 block content
         .row
-            form.col-6.contact-form(method='post', action='/contacts/addContact')
+            form.col-6.contact-form(method='post', action='/contacts/createContact')
                 .form-group
                     label First name
                     input.form-control(type='text', name='firstName')
@@ -34,12 +34,12 @@ block content
                             th(scope="col") Status
                     tbody
                         tr
-                            each prop in contact.contact
+                            each prop in contact.body
                                 td #{prop}
                             td
                                 if contact.valid 
                                     .alert.alert-success Valid
-                                    if contact.added
+                                    if contact.success
                                         .alert.alert-success Successfully added
                                     else 
                                         .alert.alert-danger Contact already exists

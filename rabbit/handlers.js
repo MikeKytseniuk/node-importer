@@ -2,45 +2,87 @@ const request = require('request');
 const db = require('../db/index');
 const validate = require('../validation/index');
 
-async function addContactToDatabase(contact) {
+
+async function getContactByEmail(email) {
+    try {
+        let contact = await db.Contact.findOne({ where: { email: email } });
+        return contact;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function updateContact(contact) {
+
+    try {
+        let newContact = await getContactByEmail(contact.body.email);
+        result = await newContact.update(contact.body);
+
+        contact.success = Boolean(result);
+        return contact;
+
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function deleteContact(contact) {
+    try {
+        let contactToDelete = await getContactByEmail(contact.body.email),
+            result = await contactToDelete.destroy();
+
+        contact.success = Boolean(result);
+        return contact;
+
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function createContact(contact) {
     let newContact = {
-        contact: contact,
-        valid: validate(contact)
+        body: contact.body,
+        valid: validate(contact.body),
+        action: contact.action
     };
 
     if (!newContact.valid) {
-        newContact.added = false;
+        newContact.success = false;
         return newContact;
     }
 
     try {
-        let result = await db.Contact.findOrCreate({ where: contact }),
+        let result = await db.Contact.findOrCreate({ where: contact.body }),
             isAddedToDB = result[1];
-
-        newContact.added = isAddedToDB;
+        newContact.success = isAddedToDB;
         return newContact;
     } catch (e) {
-        newContact.added = false;
+        newContact.success = false;
         return newContact;
     }
 }
 
-function sendIdToFeeder(id, isAdded, addedContacts) {
-    addedContacts.count++;
+function sendIdToFeeder(id, action, successFlag, contacts) {
+    contacts.count++;
 
-    if (isAdded) {
-        addedContacts.contacts.push(id);
+    if (successFlag) {
+        let log = {
+            id: id,
+            action: action
+        };
+
+        contacts.body.push(log);
     }
 
-    if (addedContacts.count === 5) {
-        addedContacts.count = 0;
-        if (addedContacts.contacts.length) {
-           makePostRequestToFeeder(addedContacts.contacts);
+    if (contacts.count === 5) {
+        contacts.count = 0;
+        if (contacts.body.length) {
+            makePostRequestToFeeder(contacts.body);
         }
-        
-        addedContacts.contacts = [];
+
+        contacts.body = [];
     }
-    return addedContacts;
+    return contacts;
 }
 
 function makePostRequestToFeeder(contacts) {
@@ -54,7 +96,10 @@ function makePostRequestToFeeder(contacts) {
     });
 }
 
+
 module.exports = {
-    sendId: sendIdToFeeder,
-    addContactToDatabase: addContactToDatabase
-};
+    update: updateContact,
+    delete: deleteContact,
+    create: createContact,
+    sendIdToFeeder: sendIdToFeeder
+}

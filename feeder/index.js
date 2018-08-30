@@ -3,13 +3,11 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
 const db = require('../db/index');
-/* const indexRouter = require('./routes/index');
-const contactsRouter = require('./routes/contacts'); */
 const mongo = require('mongodb');
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/feeder');
 const MongoDBContact = require('./models/contact');
-
+const MongoDBHandlers = require('./dbHandlers/handlers');
 
 //body parser 
 app.use(bodyParser.json());
@@ -27,7 +25,6 @@ function resolveArray(arr, limit) {
     }
 }
 
-
 app.post('/notification', async (req, res) => {
     let addedContacts = req.body;
 
@@ -37,42 +34,49 @@ app.post('/notification', async (req, res) => {
 
     let resolve = resolveArray(addedContacts, 2);
 
-    while(addedContacts.length) {
+    while (addedContacts.length) {
         compareDatabases(resolve());
     }
-    
-    
+
     res.redirect('/');
-    //res.render('index', { contacts: req.body });
-})
+});
+
+app.get('/getContacts', (req, res) => {
+    MongoDBContact.find({}, (err, result) => {
+        console.log(result);
+    });
+});
+
+
+async function getContactFromRefDB(email) {
+        let result = await db.Contact.find({ where: { email: email } });
+        if(result) {
+            return result.get({ plain: true });
+        }
+    
+}
 
 async function compareDatabases(contacts) {
     contacts.map(async elem => {
-        let result = await db.Contact.find({ where: { email: elem } });
-        let contact = result.get({ plain: true });
+        let referenceContact = await getContactFromRefDB(elem.id);
+        
+        if (!referenceContact) {
+            MongoDBHandlers.delete(elem.id);
+        }
 
-        MongoDBContact.findOne({ email: result.email }, (err, result) => {
-            let newContact = {
-                firstName: contact.firstName,
-                lastName: contact.lastName,
-                email: contact.email,
-                phoneNumber: contact.phoneNumber
+        MongoDBContact.findOne({ email: referenceContact.email }, (err, result) => {
+            if (err) return console.log(err);
+   
+            if(!result) {
+                MongoDBHandlers.create(referenceContact);
+                return;
             }
 
-            if (!result) {
-                MongoDBContact.create(newContact, (err, result) => {
-                    console.log('---------------------------', 'Added')
-                })
-            }
+            MongoDBHandlers.update(result, referenceContact);
+            
         });
     });
 }
-
-
-app.use('/', (req, res) => {
-
-    res.render('index', { contacts: 'huy' });
-});
 
 
 app.listen(8080);

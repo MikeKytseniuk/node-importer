@@ -54,35 +54,26 @@ router.get('/editContact/:id', async (req, res) => {
 
 router.post('/editContact', async (req, res) => {
     let newContact = {
-        contact: {
+        body: {
             email: req.body.email,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             phoneNumber: req.body.phoneNumber
         }
-
     };
 
-    let errors = validateContact(req, newContact.contact);
+    let errors = validateContact(req, newContact.body);
 
     if (errors) {
         return res.render('editContacts', { contact: newContact, errors: errors });
     }
 
-    try {
-        let contact = await db.Contact.findOne({ where: { email: newContact.contact.email } });
-        let result = await contact.update(newContact.contact);
-
-        if (result) {
-            newContact.updated = true;
-            rabbitMQ.sendToQueue(JSON.stringify(newContact));
-            res.render('editContacts', { response: result, successMsg: 'Contact successfully updated' });
-        }
-
-
-    } catch (e) {
-        console.log(e);
+    newContact.action = 'update';
+    let response = await rabbitMQ.sendToQueue(JSON.stringify(newContact));
+    if(response) {
+        res.render('editContacts', { response: response, successMsg: 'Contact successfully updated' });
     }
+    
 
 });
 
@@ -100,28 +91,28 @@ router.delete('/deleteContact', async (req, res) => {
             return res.send('There is no user by given id');
         }
 
-        let result = await contact.destroy();
-        if (result) {
+        let contactToDelete = {
+            body: {
+                firstName: contact.firstName,
+                lastName: contact.lastName,
+                email: contact.email,
+                phoneNumber: contact.phoneNumber
+            },
+            action: 'delete'
+        };
 
-            let newContact = {
-                contact: {
-                    firstName: contact.firstName,
-                    lastName: contact.lastName,
-                    email: contact.email,
-                    phoneNumber: contact.phoneNumber
-                },
-                deleted: true
-            };
+        let response = await rabbitMQ.sendToQueue(JSON.stringify(contactToDelete));
 
-            rabbitMQ.sendToQueue(JSON.stringify(newContact));
-
+        if(response) {
+            res.send('Deleted').status(200);
         }
-        res.send('Deleted').status(200);
+        
     } catch (e) {
         console.log(e);
     }
-
 });
+
+
 
 
 module.exports = router;

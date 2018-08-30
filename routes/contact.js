@@ -11,18 +11,27 @@ function validateContact(req, contact) {
         }
 
     }
+
+    return req.validationErrors();
 }
 
-router.post('/addContact', async (req, res) => {
-    let contact = req.body;
+router.post('/createContact', async (req, res) => {
+    let contact = {
+        body: {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            phoneNumber: req.body.phoneNumber
+        }
 
-    validateContact(req, contact);
+    };
 
-    let errors = req.validationErrors();
+    let errors = validateContact(req, contact.body);
 
     if (errors) {
         res.render('index', { errors: errors });
     } else {
+        contact.action = 'create';
         let response = await rabbitMQ.sendToQueue(JSON.stringify(contact));
         res.render('index', { contact: response });
     }

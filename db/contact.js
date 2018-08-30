@@ -2,8 +2,7 @@ module.exports = (sequelize, Sequelize) =>
     sequelize.define('contact', {
         firstName: {
             type: Sequelize.STRING,
-            allowNull: false,
-            unique:true
+            allowNull: false
         },
         lastName: {
             type: Sequelize.STRING,
