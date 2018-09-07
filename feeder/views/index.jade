@@ -1,38 +1,42 @@
 extends layout
 
 block content
-        h1 LOLO
         .row       
             if postgreContacts 
-                table.table.col-6
-                    thead
-                        tr
-                            th(scope="col") ID
-                            th(scope="col") First Name
-                            th(scope="col") Last Name
-                            th(scope="col") Email
-                            th(scope="col") Phone Number
-                    tbody
-                        each contact in postgreContacts
+                .col-6
+                    h4 Postgre contacts
+                    table.table
+                        thead
                             tr
-                                td #{contact.id}
-                                td #{contact.firstName}
-                                td #{contact.lastName}
-                                td #{contact.email}
-                                td #{contact.phoneNumber}
-                table.table.col-6
-                    thead
-                        tr
-                            th(scope="col") ID
-                            th(scope="col") First Name
-                            th(scope="col") Last Name
-                            th(scope="col") Email
-                            th(scope="col") Phone Number
-                    tbody
-                        each contact in mongoContacts
+                                th(scope="col") ID
+                                th(scope="col") First Name
+                                th(scope="col") Last Name
+                                th(scope="col") Email
+                                th(scope="col") Phone Number
+                        tbody
+                            each contact in postgreContacts
+                                tr
+                                    td #{contact.id}
+                                    td #{contact.firstName}
+                                    td #{contact.lastName}
+                                    td #{contact.email}
+                                    td #{contact.phoneNumber}
+            if mongoContacts
+                .col-6
+                    h4 Mongo contacts
+                    table.table
+                        thead
                             tr
-                                td #{contact.id}
-                                td #{contact.firstName}
-                                td #{contact.lastName}
-                                td #{contact.email}
-                                td #{contact.phoneNumber}
+                                th(scope="col") ID
+                                th(scope="col") First Name
+                                th(scope="col") Last Name
+                                th(scope="col") Email
+                                th(scope="col") Phone Number
+                        tbody
+                            each contact in mongoContacts
+                                tr
+                                    td #{contact.id}
+                                    td #{contact.firstName}
+                                    td #{contact.lastName}
+                                    td #{contact.email}
+                                    td #{contact.phoneNumber}

@@ -2,12 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
-const db = require('../db/index');
-const mongo = require('mongodb');
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/feeder');
-const MongoDBContact = require('./models/contact');
-const MongoDBHandlers = require('./dbHandlers/handlers');
+const router = require('./routes/index')
 
 //body parser 
 app.use(bodyParser.json());
@@ -17,71 +12,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.use('/', router);
 
-function resolveArray(arr, limit) {
-    return function lol() {
-        let chunk = arr.splice(0, limit);
-        return chunk;
+app.use((err, req, res, next) => {
+    if (err) {
+        res.send(err);
     }
-}
+})
 
-app.post('/notification', async (req, res) => {
-    let addedContacts = req.body;
-
-    if (!Array.isArray(addedContacts)) {
-        return res.status(404).send('Bad request');
-    }
-
-    let resolve = resolveArray(addedContacts, 2);
-
-    while (addedContacts.length) {
-        compareDatabases(resolve());
-    }
-
-    res.redirect('/');
-});
-
-app.get('/getContacts', async (req, res) => {
-    let referenceContacts = await db.Contact.findAll();
-    let result = await MongoDBContact.find({});
-    res.render('index', { mongoContacts: result, postgreContacts: referenceContacts});
-    /* MongoDBContact.find({}, (err, result) => {
-        console.log(result);
-        res.render('index', { mongoContacts: result, postgreContacts: referenceContacts});
-    }); */
-});
-
-
-async function getContactFromRefDB(email) {
-        let result = await db.Contact.find({ where: { email: email } });
-        if(result) {
-            return result.get({ plain: true });
-        }
-    
-}
-
-async function compareDatabases(contacts) {
-    contacts.map(async elem => {
-        let referenceContact = await getContactFromRefDB(elem.id);
-        
-        if (!referenceContact) {
-            MongoDBHandlers.delete(elem.id);
-            return;
-        }
-
-        MongoDBContact.findOne({ email: referenceContact.email }, (err, result) => {
-            if (err) return console.log(err);
-   
-            if(!result) {
-                MongoDBHandlers.create(referenceContact);
-                return;
-            }
-
-            MongoDBHandlers.update(result, referenceContact);
-            
-        });
-    });
-}
-
+app.use((req, res, next) => {
+    res.send('Cannot resolve this endpoint')
+})
 
 app.listen(8080);

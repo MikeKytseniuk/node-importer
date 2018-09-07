@@ -38,6 +38,15 @@ app.use(expressValidator({
 //Routes
 app.use('/', indexRouter);
 app.use('/', contactsRouter);
+app.use((req, res) => {
+  res.send('not found');
+});
+app.use((err,req, res, next) => {
+  if(err) {
+   return res.send('err');
+  }
+});
+
 
 
 app.listen(5000, getMessage);
