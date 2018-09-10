@@ -21,7 +21,7 @@ function validateContact(req, contact) {
 router.get('/getContacts', async (req, res) => {
 
     try {
-        let contacts = await db.Contact.findAll();
+        let contacts = await db.Contact.findAll({ raw: true });
         res.render('contacts', { contacts: contacts });
     } catch (e) {
         console.log(e);
@@ -71,10 +71,10 @@ router.post('/editContact', async (req, res) => {
 
     newContact.action = 'update';
     let response = await rabbitMQ.sendToQueue(JSON.stringify(newContact));
-    if(response) {
+    if (response) {
         res.render('editContacts', { response: response, successMsg: 'Contact successfully updated' });
     }
-    
+
 
 });
 
@@ -86,28 +86,23 @@ router.delete('/deleteContact', async (req, res) => {
     }
 
     try {
-        let contact = await db.Contact.findOne({ where: { email: email } });
+        let contact = await db.Contact.findOne({ where: { email: email }, raw: true });
 
         if (!contact) {
             return res.send('There is no user by given id');
         }
 
         let contactToDelete = {
-            body: {
-                firstName: contact.firstName,
-                lastName: contact.lastName,
-                email: contact.email,
-                phoneNumber: contact.phoneNumber
-            },
+            body: contact,
             action: 'delete'
         };
 
         let response = await rabbitMQ.sendToQueue(JSON.stringify(contactToDelete));
 
-        if(response) {
+        if (response) {
             res.send('Deleted').status(200);
         }
-        
+
     } catch (e) {
         console.log(e);
     }

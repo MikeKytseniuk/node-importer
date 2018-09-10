@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
 const router = require('./routes/index')
+const HTTPError = require('../HTTPError');
 
 //body parser 
 app.use(bodyParser.json());
@@ -16,7 +17,11 @@ app.use('/', router);
 
 app.use((err, req, res, next) => {
     if (err) {
-        console.log(err);
+        if(err instanceof HTTPError) {
+            console.log('=-------------------------------', err.statusCode)
+        } else {
+        
+        }
     }
 })
 

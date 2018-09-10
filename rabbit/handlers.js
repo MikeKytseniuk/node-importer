@@ -74,7 +74,7 @@ function sendIdToFeeder(id, action, successFlag, contacts) {
         contacts.body.push(log);
     }
 
-    if (contacts.count === 5) {
+    if (contacts.count === 2) {
         contacts.count = 0;
         if (contacts.body.length) {
             makePostRequestToFeeder(contacts.body);
