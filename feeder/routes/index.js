@@ -29,26 +29,24 @@ async function compareDatabases(contacts, next) {
                 MongoDBHandlers.delete(elem.id, next);
                 return;
             }
-            console.log(await MongoDBContact.findOne({ email: referenceContact.email }));
+
+            MongoDBHandlers.addOrUpdateContact(referenceContact, next);
         } catch (e) {
             next(e);
         }
-
-
-        
-        /* MongoDBContact.findOne({ email: referenceContact.email }, (err, result) => {
-            if (err) return next(err);
-
-            if (!result) {
-                MongoDBHandlers.create(referenceContact, next);
-                return;
-            }
-
-            MongoDBHandlers.update(result, referenceContact, next);
-
-        }); */
     });
 }
+
+router.get('/getContacts', async (req, res, next) => {
+    try {
+        let referenceContacts = await db.Contact.findAll(),
+            mongoContacts = await MongoDBContact.find({});
+            
+        res.render('index', { mongoContacts: mongoContacts, postgreContacts: referenceContacts });
+    } catch (e) {
+        next(e);
+    }
+});
 
 router.post('/notification', async (req, res, next) => {
 
@@ -67,14 +65,5 @@ router.post('/notification', async (req, res, next) => {
     res.redirect('/');
 });
 
-router.get('/getContacts', async (req, res, next) => {
-    try {
-        let referenceContacts = await db.Contact.findAll();
-        let mongoContacts = await MongoDBContact.find({});
-        res.render('index', { mongoContacts: mongoContacts, postgreContacts: referenceContacts });
-    } catch (e) {
-        next(e);
-    }
-});
 
 module.exports = router;

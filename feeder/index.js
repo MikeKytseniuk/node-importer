@@ -16,7 +16,7 @@ app.use('/', router);
 
 app.use((err, req, res, next) => {
     if (err) {
-        res.send(err);
+        console.log(err);
     }
 })
 
