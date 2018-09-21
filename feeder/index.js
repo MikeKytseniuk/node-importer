@@ -26,7 +26,7 @@ app.use((err, req, res, next) => {
 })
 
 app.use((req, res, next) => {
-    res.send('Cannot resolve this endpoint')
+    res.status(404).send('Cannot resove this endpoint');
 })
 
 app.listen(8080);

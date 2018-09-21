@@ -6,32 +6,38 @@ const upload = multer({
     dest: 'uploads/',
     fileFilter: fileFilter
 });
-const csv = require('csvtojson');
 const rabbitMQ = require('../../rabbit/rabbitPublisher');
+const HTTPError = require('../../HTTPError');
+const csvParserHandler = require('../csvParser/csvParserHandler');
 
+router.post('/addCSV', upload.single('csv'), async (req, res, next) => {
+    try {
+        if (!req.file) {
+            throw new HTTPError(400, 'Invalid CSV file extension');
+        }
 
-router.post('/addCSV', upload.single('csv'), async (req, res) => {
-    
-    if (!req.file) {
-        return res.render('index', { error: 'Invalid CSV file extenstion' });
+        let convertedCSV = await csvParserHandler.getTransformedCSV(req.file.path),
+            response = await sendCSVToQueue(convertedCSV);
+
+        res.render('index', { contacts: response, message: 'File successfully loaded' });
+    } catch (e) {
+        next(e);
     }
+});
 
-    const convertedCSV = await csv().fromFile(req.file.path);
 
-    let newContacts = convertedCSV.map( async elem => {
+async function sendCSVToQueue(csv) {
+    let newContacts = csv.map(async elem => {
         let contact = {
             body: elem,
-            action:'create'
+            action: 'create'
         };
 
-        let result = await rabbitMQ.sendToQueue(JSON.stringify(contact));
-        return result;
+        return rabbitMQ.sendToQueue(JSON.stringify(contact));
     });
 
-    let response = await Promise.all(newContacts);
-    res.render('index', { contacts: response, message: 'File successfully loaded' });
-
-});
+    return Promise.all(newContacts);
+}
 
 
 function fileFilter(req, file, cb) {

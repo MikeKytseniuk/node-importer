@@ -2,36 +2,20 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db/index');
 const rabbitMQ = require('../../rabbit/rabbitPublisher');
+const validators = require('../../validation/index');
+const HTTPError = require('../../HTTPError');
 
-function validateContact(req, contact) {
-    for (let prop in contact) {
-        req.checkBody(prop, `${prop} field is required`).notEmpty();
-
-        if (prop === 'email') {
-            req.checkBody('email', 'email is Invalid').isEmail();
-        }
-
-    }
-
-    return req.validationErrors();
-}
-
-
-
-router.get('/getContacts', async (req, res) => {
-
+router.get('/getContacts', async (req, res, next) => {
     try {
         let contacts = await db.Contact.findAll({ raw: true });
         res.render('contacts', { contacts: contacts });
     } catch (e) {
-        console.log(e);
-        res.render('contacts', { error: 'Database connection lost' });
+        next(new HTTPError(500, 'Database connection lost'));
     }
-
 });
 
 
-router.get('/editContact/:id', async (req, res) => {
+router.get('/editContact/:id', async (req, res, next) => {
     let email = req.params.id;
     if (!email) {
         return res.status(400).send('Bad request');
@@ -41,32 +25,26 @@ router.get('/editContact/:id', async (req, res) => {
         let contact = await db.Contact.findOne({ where: { email: email } });
 
         if (!contact) {
-            return res.render('editContacts', { message: 'There is no user by given email' });
+            return next(new HTTPError(404, 'There is no user by given email'));
         }
 
         res.render('editContacts', { contact: contact });
 
     } catch (e) {
-        console.log(e);
+        next(e);
     }
 
 });
 
 
-router.post('/editContact', async (req, res) => {
-    let newContact = {
-        body: {
-            email: req.body.email,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            phoneNumber: req.body.phoneNumber
-        }
-    };
+router.post('/editContact', async (req, res, next) => {
+    let newContact = {};
+    newContact.body = Object.assign({}, req.body);
 
-    let errors = validateContact(req, newContact.body);
+    let errors = validators.validateContact(req, newContact.body);
 
     if (errors) {
-        return res.render('editContacts', { contact: newContact, errors: errors });
+        return res.render('editContacts', { contact: newContact.body, errors: errors });
     }
 
     newContact.action = 'update';
@@ -78,18 +56,18 @@ router.post('/editContact', async (req, res) => {
 
 });
 
-router.delete('/deleteContact', async (req, res) => {
-    let email = req.body.email;
-
-    if (!email) {
-        return res.status(400).send('Bad request');
-    }
-
+router.delete('/deleteContact', async (req, res, next) => {
     try {
+        let email = req.body.email;
+
+        if (!email) {
+            throw new HTTPError(400, 'Email is required');
+        }
+
         let contact = await db.Contact.findOne({ where: { email: email }, raw: true });
 
         if (!contact) {
-            return res.send('There is no user by given id');
+            throw new HTTPError(404, 'There is no user by given email');
         }
 
         let contactToDelete = {
@@ -104,11 +82,9 @@ router.delete('/deleteContact', async (req, res) => {
         }
 
     } catch (e) {
-        console.log(e);
+        next(e);
     }
 });
-
-
 
 
 module.exports = router;

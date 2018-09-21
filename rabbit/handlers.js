@@ -1,6 +1,6 @@
 const request = require('request');
 const db = require('../db/index');
-const validate = require('../validation/index');
+const validators = require('../validation/index');
 
 
 async function getContactByEmail(email) {
@@ -42,7 +42,7 @@ async function deleteContact(contact) {
 async function createContact(contact) {
     let newContact = {
         body: contact.body,
-        valid: validate(contact.body),
+        valid: validators.joiValidation(contact.body),
         action: contact.action
     };
 

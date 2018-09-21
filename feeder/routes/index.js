@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db/index');
 const MongoDBContact = require('../models/contact');
-const MongoDBHandlers = require('../dbHandlers/handlers');
+const makeMongoDbAction = require('../dbHandlers/handlers');
 const HTTPError = require('../../HTTPError');
+
 
 function resolveArray(arr, limit) {
     return function lol() {
@@ -13,20 +14,19 @@ function resolveArray(arr, limit) {
 }
 
 async function compareDatabases(contacts, next) {
-    contacts.map(async elem => {
-        try {
-            let referenceContact = await db.Contact.findOne({ where: { email: elem.id }, raw: true });
+    try {
+        let response = contacts.map(async elem => {
+            let referenceContact = await db.Contact.findOne({ where: { email: elem.id }, raw: true }),
+                mongoResponse = await makeMongoDbAction(referenceContact, elem);
 
-            if (!referenceContact) {
-                MongoDBHandlers.delete(elem.id, next);
-                return;
-            }
+            return mongoResponse;
+        });
+        res.status(200).send(await Promise.all(response));
+    }
 
-            MongoDBHandlers.addOrUpdateContact(referenceContact, next);
-        } catch (e) {
-            next(e);
-        }
-    });
+    catch (e) {
+        next(e);
+    }
 }
 
 router.get('/getContacts', async (req, res, next) => {
@@ -34,9 +34,9 @@ router.get('/getContacts', async (req, res, next) => {
         let referenceContacts = await db.Contact.findAll({ raw: true }),
             mongoContacts = await MongoDBContact.find({});
 
-        /* if(!referenceContacts.length && !mongoContacts.length) {
-            return next(new HTTPError('404', 'Contacts not found'));
-        } */
+        if (!referenceContacts.length && !mongoContacts.length) {
+            throw new HTTPError('404', 'Contacts not found');
+        }
 
         res.render('index', { mongoContacts: mongoContacts, postgreContacts: referenceContacts });
     } catch (e) {

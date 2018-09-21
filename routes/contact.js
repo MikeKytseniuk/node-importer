@@ -1,41 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const rabbitMQ = require('../rabbit/rabbitPublisher');
+const validators = require('../validation/index');
+const HTTPError = require('../HTTPError');
 
-function validateContact(req, contact) {
-    for (let prop in contact) {
-        req.checkBody(prop, `${prop} field is required`).notEmpty();
-
-        if (prop === 'email') {
-            req.checkBody('email', 'email is Invalid').isEmail();
-        }
-
+/* function checkDbResponse(response) {
+    return {
+        statusCode: response.success ? 200: 409,
+        body: response.success ? 'Contact succesfully added' : 'Contact already exists'
     }
+} */
 
-    return req.validationErrors();
-}
+router.post('/createContact', async (req, res, next) => {
+    let contact = {};
+    contact.body = Object.assign({}, req.body);
 
-router.post('/createContact', async (req, res) => {
-    let contact = {
-        body: {
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            phoneNumber: req.body.phoneNumber
-        }
-
-    };
-
-    let errors = validateContact(req, contact.body);
+    let errors = validators.validateContact(req, contact.body);
 
     if (errors) {
-        res.render('index', { errors: errors });
-    } else {
-        contact.action = 'create';
-        let response = await rabbitMQ.sendToQueue(JSON.stringify(contact));
-        res.render('index', { contact: response });
+        return next(new HTTPError(400, errors));
     }
 
+    contact.action = 'create';
+    let response = await rabbitMQ.sendToQueue(JSON.stringify(contact));
+    //let log = checkDbResponse(response);
+
+    //res.status(log.statusCode).send(log.body);
+    res.render('index', { contact: response }); 
 });
 
 module.exports = router;

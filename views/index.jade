@@ -18,8 +18,8 @@ block content
                     br
                     input.btn(type='submit', value='Add contact') 
             .col-6.errors
-                if errors        
-                    each error in errors
+                if errors
+                    each error in errors        
                         .alert.alert-danger #{error.msg}
         .log
             if contact
